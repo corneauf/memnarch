@@ -1,15 +1,16 @@
 use std::env;
 use std::fs;
-use std::io::{BufRead, BufReader};
-use std::process::{Command, Stdio};
+use std::process::Command;
 use std::str;
 
 use anyhow::anyhow;
+use anyhow::Context;
 use anyhow::Result;
 use flate2::read::GzDecoder;
 use serde::Deserialize;
 use tar::Archive;
 
+use crate::commands;
 use crate::tools::Buildable;
 use crate::utils;
 
@@ -49,23 +50,13 @@ impl Target {
         let gz = GzDecoder::new(file);
         let mut archive = Archive::new(gz);
         archive.unpack(".")?;
-        Ok(())
-    }
 
-    fn configure(&self) -> Result<()> {
-        let mut command = Command::new("./configure").stdout(Stdio::piped()).spawn()?;
+        let archive_name = mirror.split('/').next_back().unwrap();
+        let pos = utils::rfind_nth(&archive_name, '.', 2).unwrap();
 
-        {
-            let stdout = command.stdout.take().unwrap();
-            let stdout_reader = BufReader::new(stdout);
-            let stdout_lines = stdout_reader.lines();
+        let directory_name = &archive_name[..archive_name.len() - pos - 1];
 
-            for line in stdout_lines {
-                println!("{}", line?);
-            }
-        }
-
-        command.wait().unwrap();
+        fs::rename(&directory_name, "archive").context("Failed to rename directory")?;
 
         Ok(())
     }
@@ -79,7 +70,7 @@ impl Buildable for Target {
     fn is_present(&self) -> Result<bool> {
         if let Ok(make_call) = Command::new(&self.name).arg(&self.version_command).output() {
             let from = str::from_utf8(&make_call.stdout)?
-                .split('\n')
+                .lines()
                 .next()
                 .unwrap();
 
@@ -111,15 +102,12 @@ impl Buildable for Target {
         println!("Building {0}", self.name);
 
         let old_cwd = env::current_dir()?;
-        let mut directory_name = self.name.to_owned();
-        directory_name.push('-');
-        directory_name.push_str(&self.version);
-        let path = old_cwd.join(&directory_name);
+        let path = old_cwd.join("archive");
 
         env::set_current_dir(path)?;
 
         if self.configure {
-            self.configure()?;
+            commands::call("./configure")?;
         }
 
         env::set_current_dir(old_cwd)?;
