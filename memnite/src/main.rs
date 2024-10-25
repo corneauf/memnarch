@@ -1,6 +1,7 @@
 mod args;
 mod config;
 mod commands;
+mod context;
 mod tools;
 mod utils;
 
@@ -15,8 +16,10 @@ fn main() -> Result<()> {
 
     match &cli.command {
         Some(Commands::Install) => {
-            tools::install_all(&config).with_context(|| "Failed to install tools.")
+            tools::install_all(&config).with_context(|| "Failed to install tools.")?
         }
-        None => Ok(()),
+        None => { Ok(()) }
     }
+
+    Ok(())
 }
