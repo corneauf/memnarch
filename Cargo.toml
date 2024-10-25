@@ -1,6 +1,5 @@
-[package]
-name = "config_installer"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
+[workspace]
+resolver = "2"
+members = [
+    "memnite",
+]
