@@ -1,5 +1,6 @@
 mod args;
 mod config;
+mod commands;
 mod tools;
 mod utils;
 
