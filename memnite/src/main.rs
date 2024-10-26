@@ -17,8 +17,8 @@ fn main() -> Result<()> {
     match &cli.command {
         Some(Commands::Install) => {
             tools::install_all(&config).with_context(|| "Failed to install tools.")?
-        }
-        None => { Ok(()) }
+        },
+        _ => ()
     }
 
     Ok(())

@@ -1,7 +1,7 @@
-use std::env;
-
 use crate::config;
 use crate::utils::ensure_dir;
+use crate::context;
+use crate::context::ContextProvider;
 
 use anyhow::Context;
 use anyhow::Result;
@@ -27,16 +27,13 @@ fn build_target<T: Buildable>(target: &T) -> Result<()> {
     if !target.is_present()? {
         let temp_dir = ensure_dir(target.name())?;
         let path = temp_dir.path().join(target.name());
-        let old_cwd = env::current_dir()?;
 
-        env::set_current_dir(path)?;
+        let _c = context::ChangeCwd::with(&path);
 
         target.download().context("Failed to download source.")?;
         target.build().context("Failed to build tool.")?;
 
         target.install().context("Failed to install tool")?;
-
-        env::set_current_dir(old_cwd)?;
     }
 
     Ok(())

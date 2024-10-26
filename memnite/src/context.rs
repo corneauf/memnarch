@@ -1,19 +1,19 @@
 use std::path::PathBuf;
 use std::env;
 
-pub trait ContextProvider: Drop {
-    type HeldType;
+pub trait ContextProvider {
+    type Args;
 
-    fn with(to_hold: Self::HeldType) -> Self;
+    fn with(to_hold: &Self::Args) -> Self;
 }
 pub struct ChangeCwd {
     cwd: PathBuf,
 }
 
 impl ContextProvider for ChangeCwd {
-    type HeldType = PathBuf;
+    type Args = PathBuf;
 
-    fn with(path: PathBuf) -> Self {
+    fn with(path: &Self::Args) -> Self {
         let context = ChangeCwd {
             cwd: env::current_dir().unwrap()
         };

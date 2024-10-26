@@ -1,18 +1,14 @@
-use std::env;
-use std::fs;
+use std::{env, fs, str};
 use std::process::Command;
-use std::str;
 
-use anyhow::anyhow;
-use anyhow::Context;
-use anyhow::Result;
+use anyhow::{anyhow, Context, Result};
 use flate2::read::GzDecoder;
 use serde::Deserialize;
 use tar::Archive;
 
-use crate::commands;
+use crate::{commands, utils, context};
 use crate::tools::Buildable;
-use crate::utils;
+use crate::context::ContextProvider;
 
 const ARCHIVE_NAME: &str = "archive.tar.gz";
 
@@ -52,11 +48,10 @@ impl Target {
         archive.unpack(".")?;
 
         let archive_name = mirror.split('/').next_back().unwrap();
-        let pos = utils::rfind_nth(&archive_name, '.', 2).unwrap();
 
-        let directory_name = &archive_name[..archive_name.len() - pos - 1];
+        let directory_name = archive_name.strip_suffix(".tar.gz").unwrap();
 
-        fs::rename(&directory_name, "archive").context("Failed to rename directory")?;
+        fs::rename(directory_name, "archive").context("Failed to rename directory")?;
 
         Ok(())
     }
@@ -101,16 +96,18 @@ impl Buildable for Target {
     fn build(&self) -> Result<()> {
         println!("Building {0}", self.name);
 
-        let old_cwd = env::current_dir()?;
-        let path = old_cwd.join("archive");
+        let path = env::current_dir().unwrap().join("archive");
 
-        env::set_current_dir(path)?;
+        let _c = context::ChangeCwd::with(&path);
 
         if self.configure {
-            commands::call("./configure")?;
+            commands::call("./configure").context("Configure call failed")?;
         }
 
-        env::set_current_dir(old_cwd)?;
+        commands::call("make").context("Make call failed.")?;
+
+        commands::call_with("make", ["install"]).context("Make install failed")?;
+
         Ok(())
     }
 

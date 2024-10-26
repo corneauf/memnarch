@@ -49,18 +49,3 @@ pub fn format_mirror(mirror: &str, version: &str) -> Result<String> {
     Ok(strfmt(mirror, &vars)?)
 }
 
-pub fn rfind_nth(from: &str, to_find: char, n: usize) -> Option<usize> {
-    let mut count = 0;
-    
-    for (i, c) in from.chars().rev().enumerate() {
-        if c == to_find {
-            count += 1;
-        }
-
-        if count == n {
-            return Some(i);
-        }
-    }
-
-    None
-}
