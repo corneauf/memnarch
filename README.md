@@ -1,4 +1,4 @@
-# Corn's Config Cinstaller
+# Memnarch, dotfiles watcher
 
 This will create all the necessary setup for a brand new environment. It will
 
