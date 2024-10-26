@@ -105,7 +105,6 @@ impl Buildable for Target {
         }
 
         commands::call("make").context("Make call failed.")?;
-
         commands::call_with("make", ["install"]).context("Make install failed")?;
 
         Ok(())
