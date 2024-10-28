@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use std::env;
+use std::path::PathBuf;
 
 pub trait ContextProvider {
     type Args;
@@ -15,7 +15,7 @@ impl ContextProvider for ChangeCwd {
 
     fn with(path: &Self::Args) -> Self {
         let context = ChangeCwd {
-            cwd: env::current_dir().unwrap()
+            cwd: env::current_dir().unwrap(),
         };
 
         env::set_current_dir(path).unwrap();

@@ -1,7 +1,9 @@
 mod args;
-mod config;
 mod commands;
+mod config;
 mod context;
+mod decoder;
+mod env;
 mod tools;
 mod utils;
 
@@ -12,13 +14,13 @@ use clap::Parser;
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    let config = config::Config::get_config(cli.config.as_deref())?;
+    let mut config = config::Config::get_config(cli.config.as_deref())?;
 
     match &cli.command {
         Some(Commands::Install) => {
-            tools::install_all(&config).with_context(|| "Failed to install tools.")?
-        },
-        _ => ()
+            tools::install_all(&mut config).with_context(|| "Failed to install tools.")?
+        }
+        _ => (),
     }
 
     Ok(())

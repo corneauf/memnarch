@@ -1,12 +1,9 @@
-use std::collections::HashMap;
-use std::env;
 use std::fs::create_dir;
 use std::io::Cursor;
 
 use anyhow::anyhow;
 use anyhow::Result;
 use regex::Regex;
-use strfmt::strfmt;
 use tempfile::{tempdir_in, TempDir};
 
 const VERSION_REGEX: &str = "[0-9]\\.[0-9]*(.[0-9])?";
@@ -38,14 +35,3 @@ pub fn is_same_version(version: &str, from: &str) -> Result<bool> {
 
     Ok(captures[0] == *version)
 }
-
-pub fn format_mirror(mirror: &str, version: &str) -> Result<String> {
-    let mut vars = HashMap::new();
-
-    vars.insert("os".to_string(), env::consts::OS.to_string());
-    vars.insert("arch".to_string(), env::consts::ARCH.to_string());
-    vars.insert("version".to_string(), version.to_string());
-
-    Ok(strfmt(mirror, &vars)?)
-}
-
