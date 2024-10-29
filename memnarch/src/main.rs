@@ -20,7 +20,7 @@ fn main() -> Result<()> {
 
     match &cli.command {
         Some(Commands::Install) => {
-            tools::install_all(&mut config).with_context(|| "Failed to install tools.")?
+            tools::install_tools(&mut config).with_context(|| "Failed to install tools.")?
         }
         _ => (),
     }

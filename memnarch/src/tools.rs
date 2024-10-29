@@ -41,7 +41,7 @@ pub fn call_tool(target: &target::Target) -> Result<()> {
     }
 }
 
-pub fn install_all(config: &mut config::Config) -> Result<()> {
+pub fn install_tools(config: &mut config::Config) -> Result<()> {
     let env = &mut config.memnarch;
     env.ensure_binary_folder()?;
 
