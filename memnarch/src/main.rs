@@ -3,7 +3,9 @@ mod commands;
 mod config;
 mod context;
 mod decoder;
+mod download;
 mod env;
+mod target;
 mod tools;
 mod utils;
 

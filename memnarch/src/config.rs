@@ -7,14 +7,14 @@ use serde::Deserialize;
 use strfmt::strfmt;
 
 use crate::env;
-use crate::tools::make;
+use crate::target;
 
 #[derive(Debug, Deserialize, Default)]
 pub struct Config {
     #[serde(default)]
-    pub make: make::Config,
+    pub target: Vec<target::Target>,
     #[serde(default)]
-    pub memnarch: env::Config,
+    pub memnarch: env::Env,
 }
 
 impl Config {
@@ -69,7 +69,7 @@ impl Expander {
         }
     }
 
-    pub fn and(&mut self, key: &str, value: &str) -> &mut Self {
+    pub fn and(mut self, key: &str, value: &str) -> Self {
         self.mapping.insert(key.to_string(), value.to_string());
 
         self

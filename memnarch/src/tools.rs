@@ -1,68 +1,52 @@
 use crate::config;
 use crate::context;
 use crate::context::ContextProvider;
+use crate::download;
 use crate::env;
+use crate::target;
 use crate::utils::ensure_dir;
 
-use anyhow::Context;
-use anyhow::Result;
+use anyhow::{anyhow, Context, Result};
 
 pub mod make;
 
-macro_rules! run_tools {
-    ( $config:expr, $( $tool:ident ),+ $(,)? ) => {
-        (
-            ::paste::paste!({
-                $(
-                    let tool_config = &mut $config. [<$tool>];
-                    for target in &mut tool_config.targets {
-                        build_target(target, &$config.memnarch)?;
-                    }
-                )*
-            })
-        )
-    }
-}
-
-fn build_target<T: Buildable>(target: &mut T, config: &env::Config) -> Result<()> {
+fn build_target(target: &mut target::Target, config: &env::Env) -> Result<()> {
     if !target.is_present()? {
-        let mut expander = config::Expander::new();
-        expander.and("install_dir", &config.installation_folder);
+        let expander = config::Expander::new().and("install_dir", &config.installation_folder);
 
-        target.expand_strings(&mut expander)?;
+        target.expand_strings(expander)?;
 
-        let temp_dir = ensure_dir(target.name())?;
-        let path = temp_dir.path().join(target.name());
+        let temp_dir = ensure_dir(&target.name)?;
+        let path = temp_dir.path().join(&target.name);
 
         let _c = context::ChangeCwd::with(&path);
 
-        let build_folder = target.download().context("Failed to download source.")?;
+        let build_folder = download::download(target.mirror.as_deref(), target.repo.as_ref())
+            .context("Failed to download source.")?;
 
         let _build = context::ChangeCwd::with(&path.join(&build_folder));
-        target.build().context("Failed to build tool.")?;
 
-        target.install().context("Failed to install tool")?;
+        call_tool(target)?;
     } else {
-        println!("{} is already present, skipping.", target.name());
+        println!("{} is already present, skipping.", target.name);
     }
 
     Ok(())
 }
 
-pub trait Buildable {
-    fn expand_strings(&mut self, expander: &mut config::Expander) -> Result<()>;
-    fn name(&self) -> &str;
-    fn is_present(&self) -> Result<bool>;
-    fn download(&self) -> Result<String>;
-    fn build(&self) -> Result<()>;
-    fn install(&self) -> Result<()>;
+pub fn call_tool(target: &target::Target) -> Result<()> {
+    match target.tool.as_str() {
+        "make" => make::call_make(target),
+        _ => Err(anyhow!("No tool found for {}", target.name)),
+    }
 }
 
 pub fn install_all(config: &mut config::Config) -> Result<()> {
     let env = &mut config.memnarch;
     env.ensure_binary_folder()?;
 
-    run_tools!(config, make);
-
+    for target in &mut config.target {
+        build_target(target, env)?;
+    }
     Ok(())
 }

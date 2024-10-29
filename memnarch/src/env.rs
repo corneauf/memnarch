@@ -4,19 +4,19 @@ use anyhow::{Context, Result};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-pub struct Config {
+pub struct Env {
     pub installation_folder: String,
 }
 
-impl Default for Config {
+impl Default for Env {
     fn default() -> Self {
-        Config {
+        Env {
             installation_folder: "~/.memnarch/".to_owned(),
         }
     }
 }
 
-impl Config {
+impl Env {
     pub fn ensure_binary_folder(&mut self) -> Result<()> {
         let path = self.installation_folder.to_string();
         self.installation_folder = String::from(
