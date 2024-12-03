@@ -1,3 +1,4 @@
+use crate::cache;
 use crate::config;
 use crate::context;
 use crate::context::ContextProvider;
@@ -10,14 +11,11 @@ use anyhow::{anyhow, Context, Result};
 
 pub mod make;
 
-fn build_target(target: &mut target::Target, config: &env::Env) -> Result<()> {
+fn build_target(target: &mut target::Target, &mut cache: cache::Cache, out_folder: &str) -> Result<()> {
     if !target.is_present()? {
-        let expander = config::Expander::new().and("install_dir", &config.installation_folder);
+        let expander = config::Expander::new().and("out_folder", out_folder);
 
         target.expand_strings(expander)?;
-
-        let temp_dir = ensure_dir(&target.name)?;
-        let path = temp_dir.path().join(&target.name);
 
         let _c = context::ChangeCwd::with(&path);
 
@@ -41,12 +39,9 @@ pub fn call_tool(target: &target::Target) -> Result<()> {
     }
 }
 
-pub fn install_tools(config: &mut config::Config) -> Result<()> {
-    let env = &mut config.memnarch;
-    env.ensure_binary_folder()?;
-
+pub fn install_tools(config: config::Config, cache: &mut cache::Cache) -> Result<()> {
     for target in &mut config.target {
-        build_target(target, env)?;
+        build_target(target, cache, config.env.out_folder)?;
     }
     Ok(())
 }

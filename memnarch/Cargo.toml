@@ -8,13 +8,10 @@ anyhow = "1.0.91"
 clap = { version = "4.5.20", features = ["derive"] }
 flate2 = "1.0.34"
 home = "0.5.9"
-paste = "1.0.15"
-regex = "1.11.0"
 reqwest = { version = "0.12.8", features = ["blocking", "charset"] }
 serde = { version = "1.0.211", features = ["derive"] }
 shellexpand = "3.1.0"
 strfmt = "0.2.4"
 tar = "0.4.42"
-tempfile = "3.13.0"
 toml = "0.8.19"
 xz = "0.1.0"

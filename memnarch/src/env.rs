@@ -1,39 +1,45 @@
 use std::fs;
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Env {
-    pub installation_folder: String,
+    pub out_folder: String,
 }
 
 impl Default for Env {
     fn default() -> Self {
         Env {
-            installation_folder: "~/.memnarch/".to_owned(),
+            out_folder: "$HOME/.memnarch/".to_owned(),
         }
     }
 }
 
 impl Env {
-    pub fn ensure_binary_folder(&mut self) -> Result<()> {
-        let path = self.installation_folder.to_string();
-        self.installation_folder = String::from(
+    pub fn ensure_out_folder(&mut self) -> Result<()> {
+        let path = self.out_folder.to_string();
+        self.out_folder = String::from(
             shellexpand::full(&path)
                 .context("Failed to expand shell variable when creating bin folder")?,
         );
 
-        if std::path::Path::new(&self.installation_folder).exists() {
+        let path = std::path::Path::new(&self.out_folder);
+
+        if !path.is_absolute() {
+            return Err(anyhow!(
+                "Installation directory must be an absolute path, got {}",
+                path.display()
+            ));
+        }
+
+        if path.exists() {
             return Ok(());
         }
 
-        println!("Creating {} folder", self.installation_folder);
+        println!("Creating {} folder", self.out_folder);
 
-        fs::DirBuilder::new()
-            .recursive(true)
-            .create(&self.installation_folder)
-            .context("Failed to create bin folder")?;
+        fs::create_dir_all(&path).context("Failed to create bin folder")?;
 
         Ok(())
     }

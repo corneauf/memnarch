@@ -1,10 +1,8 @@
-use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
 use anyhow::Result;
 use serde::Deserialize;
-use strfmt::strfmt;
 
 use crate::env;
 use crate::target;
@@ -49,33 +47,5 @@ impl Config {
         } else {
             Config::from_env()
         }
-    }
-}
-
-pub struct Expander {
-    pub mapping: HashMap<String, String>,
-}
-
-impl Expander {
-    pub fn new() -> Self {
-        Expander {
-            mapping: [
-                ("os".to_string(), std::env::consts::OS.to_string()),
-                ("arch".to_string(), std::env::consts::ARCH.to_string()),
-            ]
-            .iter()
-            .cloned()
-            .collect(),
-        }
-    }
-
-    pub fn and(mut self, key: &str, value: &str) -> Self {
-        self.mapping.insert(key.to_string(), value.to_string());
-
-        self
-    }
-
-    pub fn expand(&self, from: &str) -> Result<String> {
-        Ok(strfmt(from, &self.mapping)?)
     }
 }
